@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  username   String   @unique @db.VarChar(50)
+  password   String
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
+  folders Folder[]
+  files   File[]
+}
+
+model Folder {
+  id         String   @id @default(uuid())
+  name       String
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  parent_id String?
+  parent    Folder?  @relation("NestedFolder", fields: [parent_id], references: [id], onDelete: Cascade)
+  children  Folder[] @relation("NestedFolder")
+
+  files File[]
+}
+
+model File {
+  id         String   @id @default(uuid())
+  name       String
+  url        String
+  size       Int
+  mime_type  String
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  folder_id String?
+  folder    Folder? @relation(fields: [folder_id], references: [id], onDelete: Cascade)
+}
